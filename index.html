@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e9dece">
+<title>Dear Someone</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#e9dece;color:#665341;
+ font-family:Georgia,serif;padding:20px 12px 100px;
+}
+header{text-align:center;margin:15px 0 25px}
+header small{font:10px Arial;letter-spacing:4px;color:#a28a70}
+header h1{font-size:38px;font-weight:normal;margin:12px 0}
+header p{font-size:13px;font-style:italic;color:#a28a70}
+.book-wrap{max-width:760px;margin:auto}
+.book{
+ display:grid;grid-template-columns:1fr 1fr;
+ padding:12px;background:#cdb99d;border-radius:5px;
+ box-shadow:0 15px 35px #65503b30;position:relative;
+ perspective:1400px;
+}
+.book:after{
+ content:"";position:absolute;left:50%;top:12px;bottom:12px;
+ width:12px;transform:translateX(-50%);
+ background:linear-gradient(90deg,#b29c7f,#fff5e5,#b29c7f);
+ z-index:3;
+}
+.page{
+ height:430px;background:#fffaf0;padding:24px 19px;
+ position:relative;overflow:auto;
+}
+.left{border-radius:3px 0 0 3px}
+.right{border-radius:0 3px 3px 0}
+.left:after{
+ content:"";position:absolute;right:0;top:0;bottom:0;width:12px;
+ background:linear-gradient(90deg,transparent,#9c82601a);
+}
+.right:after{
+ content:"";position:absolute;left:0;top:0;bottom:0;width:12px;
+ background:linear-gradient(90deg,#9c82601a,transparent);
+}
+.page-number{
+ position:absolute;bottom:10px;left:0;right:0;
+ text-align:center;color:#b39d82;font-size:11px;
+ pointer-events:none;
+}
+.left-inner{
+ min-height:100%;display:flex;flex-direction:column;
+ justify-content:center;text-align:center;padding:8px;
+}
+.ornament{font-size:27px;color:#b49b7b}
+.left-inner h2{font-size:22px;font-weight:normal}
+.left-inner p{font-size:12px;line-height:1.9;color:#a38b73;font-style:italic}
+.chapter-label{font:10px Arial;letter-spacing:2px;color:#ae9478}
+.chapter-title{font-size:22px;font-weight:normal;line-height:1.4;margin:13px 0 20px}
+.story{
+ font-size:13px;line-height:2;color:#796753;
+ white-space:pre-line;overflow-wrap:anywhere;
+}
+#turner{
+ position:absolute;z-index:5;left:50%;top:12px;bottom:12px;
+ width:calc(50% - 12px);background:#fffaf0;
+ transform-origin:left center;pointer-events:none;opacity:0;
+}
+#turner.flip{opacity:1;animation:flip .65s ease-in-out}
+@keyframes flip{to{transform:rotateY(-180deg)}}
+.controls{
+ display:flex;justify-content:center;align-items:center;
+ gap:12px;margin:20px 0;
+}
+button{
+ font-family:Arial,sans-serif;cursor:pointer;
+}
+.controls button,.toc-button{
+ border:1px solid #bba68c;background:#fff8ec;
+ color:#755f49;border-radius:25px;padding:11px 17px;
+}
+button:disabled{opacity:.35}
+#counter{font:11px Arial;color:#927c65}
+.toc{
+ max-width:600px;margin:25px auto;background:#fffaf0;
+ padding:22px;border:1px solid #dfd0bb;border-radius:5px;
+}
+.toc h3{font-weight:normal;margin:0 0 15px}
+.toc-button{
+ display:block;width:100%;text-align:left;border-radius:4px;
+ margin:8px 0;padding:12px 14px;font-size:12px;
+}
+.toc-button span{color:#ac9274;margin-right:10px}
+.toc-button.active{background:#e9dece}
+.music{
+ position:fixed;bottom:0;left:0;right:0;
+ background:#fffaf0;border-top:1px solid #dfd0bb;
+ padding:12px 16px;display:flex;align-items:center;
+ gap:12px;z-index:10;
+}
+.music button{
+ border:0;border-radius:50%;width:40px;height:40px;
+ background:#8b7258;color:white;font-size:17px;
+}
+.music-info{flex:1}
+.music-info strong{font-weight:normal;font-size:14px}
+.music-info small{display:block;font:10px Arial;color:#a38b73;margin-top:4px}
+iframe{position:absolute;width:1px;height:1px;left:-9999px}
+.footer{text-align:center;color:#a38b73;font:11px Arial;margin:25px}
+@media(max-width:450px){
+ .page{height:410px;padding:22px 15px}
+ .chapter-title{font-size:19px}
+ .story{font-size:12px;line-height:1.9}
+ .controls{gap:7px}
+ .controls button{padding:10px 12px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <small>A PRIVATE JOURNAL</small>
+ <h1>Dear Someone.</h1>
+ <p>A story that started with a game.</p>
+</header>
+
+<div class="book-wrap">
+ <div class="book">
+
+  <div class="page left">
+   <div class="left-inner" id="leftContent"></div>
+   <div class="page-number" id="leftNumber"></div>
+  </div>
+
+  <div class="page right">
+   <div id="rightContent"></div>
+   <div class="page-number" id="rightNumber"></div>
+  </div>
+
+  <div id="turner"></div>
+ </div>
+
+ <div class="controls">
+  <button id="prev" onclick="turn(-1)">← Back</button>
+  <span id="counter">Cover</span>
+  <button id="next" onclick="turn(1)">Next →</button>
+ </div>
+</div>
+
+<section class="toc">
+ <h3>Daftar Isi</h3>
+ <div id="tocList"></div>
+</section>
+
+<div class="footer">Some stories are better kept in a diary. ♡</div>
+
+<iframe id="yt"
+ src="https://www.youtube-nocookie.com/embed/tAc1nYVV_FU?enablejsapi=1&playsinline=1&autoplay=0"
+ allow="autoplay;encrypted-media;picture-in-picture"
+ title="Dewi Acoustic">
+</iframe>
+
+<div class="music">
+ <button id="musicBtn" onclick="music()">▶</button>
+ <div class="music-info">
+  <strong>Dewi (Acoustic)</strong>
+  <small>Threesixty · YouTube</small>
+ </div>
+ <span style="color:#a58b73">♫</span>
+</div>
+
+<script>
+const chapters=[
+{
+ title:"Awalnya Cuma Mabar",
+ text:`Awalnya semuanya biasa saja. Kenal karena sering main PUBG bareng. Kalau ada waktu ya main, kalau tidak ya sudah.
+
+Kadang cuma saling mengajak masuk room, lalu bermain seperti biasa. Tidak ada yang terlalu istimewa saat itu.
+
+Tapi lama-lama aku mulai terbiasa dengan kehadirannya. Rasanya ada yang kurang kalau biasanya bermain bersama, tiba-tiba dia tidak ikut.
+
+Aku sendiri tidak tahu kapan tepatnya mulai merasa seperti itu.
+
+Mungkin memang sesederhana itu awalnya. Dari sebuah permainan, kemudian ada seseorang yang mulai menarik perhatianku.`
+},
+{
+ title:"Mulai Terbiasa",
+ text:`Hari-hari berikutnya berjalan seperti biasa. Sesekali mabar, sesekali ngobrol, dan kadang saling bercanda.
+
+Tidak selalu ada hal menarik yang dibicarakan. Bahkan terkadang kami hanya fokus bermain.
+
+Tapi anehnya, hal-hal sederhana itu justru mulai terasa menyenangkan.
+
+Aku mulai mengenali kebiasaannya saat bermain. Cara dia bercanda, cara dia berbicara, sampai hal-hal kecil yang sebelumnya tidak pernah aku perhatikan.
+
+Mungkin karena terlalu sering bersama, semuanya jadi terasa akrab.
+
+Dan tanpa sadar, aku mulai menikmati kebiasaan itu.`
+},
+{
+ title:"Menunggu Ajakan",
+ text:`Ada satu hal yang mulai kusadari belakangan ini.
+
+Kadang aku membuka PUBG bukan karena benar-benar ingin bermain. Aku hanya berharap dia sedang online.
+
+Kalau melihat namanya muncul, rasanya senang sendiri. Tapi kalau tidak ada, biasanya aku kembali bermain seperti biasa atau menutup game.
+
+Aku juga tidak pernah bilang kalau sebenarnya aku menunggu.
+
+Bagiku mungkin terdengar sepele. Tapi ternyata ada seseorang yang bisa membuat hal sederhana seperti bermain game terasa lebih menyenangkan.
+
+Entah ini hanya karena sudah terbiasa atau memang ada perasaan lain.`
+},
+{
+ title:"Obrolan di Luar Game",
+ text:`Awalnya kami lebih sering berbicara saat bermain. Tapi perlahan obrolan itu kadang berlanjut di luar game.
+
+Tidak selalu panjang. Kadang hanya membahas sesuatu yang baru terjadi, bercanda, atau bertanya hal sederhana.
+
+Aku mulai tahu sedikit tentang kesehariannya. Begitu juga sebaliknya, meskipun mungkin belum banyak.
+
+Ada kalanya aku ingin melanjutkan obrolan, tetapi bingung harus membahas apa.
+
+Aku tidak mau terlihat terlalu memaksakan percakapan.
+
+Jadi, aku mencoba bersikap biasa saja. Walaupun sebenarnya aku senang setiap kali ada kesempatan untuk berbicara dengannya.`
+},
+{
+ title:"Sebenarnya Aku Kenapa?",
+ text:`Belakangan ini aku mulai bertanya kepada diri sendiri.
+
+Kenapa sekarang aku sering memikirkannya? Kenapa hal kecil yang berhubungan dengannya bisa membuatku tersenyum sendiri?
+
+Padahal sebelumnya kami hanya teman bermain.
+
+Aku mencoba menganggap semuanya biasa saja. Mungkin karena sering bertemu di game, mungkin juga karena sudah nyaman.
+
+Tapi semakin dipikirkan, semakin sulit rasanya untuk menganggap tidak ada apa-apa.
+
+Aku belum tahu harus menyebut perasaan ini apa.
+
+Yang jelas, sekarang dia menjadi salah satu orang yang sering terlintas di pikiranku.`
+},
+{
+ title:"Takut Salah Paham",
+ text:`Kadang aku berpikir untuk mencoba lebih dekat.
+
+Tapi kemudian muncul pertanyaan lain. Bagaimana kalau selama ini aku hanya salah mengartikan sikapnya?
+
+Bisa saja dia memang ramah kepada semua orang. Bisa saja baginya mabar dan ngobrol denganku tidak lebih dari pertemanan biasa.
+
+Aku tidak ingin membuat keadaan menjadi canggung hanya karena perasaanku sendiri.
+
+Apalagi aku masih nyaman dengan hubungan yang sekarang.
+
+Akhirnya aku memilih untuk tidak terburu-buru.
+
+Mengenalnya lebih jauh mungkin lebih baik daripada sibuk menebak-nebak sesuatu yang belum pasti.`
+},
+{
+ title:"Tetap Seperti Biasa",
+ text:`Sampai sekarang aku masih mencoba bersikap seperti biasanya.
+
+Kalau dia mengajak mabar, aku ikut kalau memang sedang bisa. Kalau ada kesempatan ngobrol, ya ngobrol.
+
+Aku tidak ingin tiba-tiba berubah hanya karena mulai menyukai seseorang.
+
+Mungkin memang lebih baik semuanya berjalan secara alami.
+
+Aku juga tidak tahu apakah suatu saat nanti akan ada kesempatan untuk mengenalnya lebih dekat.
+
+Untuk sekarang, aku hanya ingin menikmati waktu yang ada tanpa membuat keadaan menjadi rumit.
+
+Tidak semua hal harus segera mendapatkan jawaban.`
+},
+{
+ title:"Ada Rasa yang Disimpan",
+ text:`Ada beberapa hal yang sebenarnya ingin aku katakan, tetapi selalu berhenti sebelum sempat disampaikan.
+
+Bukan karena tidak ingin jujur. Aku hanya belum menemukan waktu dan cara yang tepat.
+
+Aku juga tidak ingin membuat dia merasa harus memberikan jawaban atas sesuatu yang mungkin tidak pernah dia pikirkan.
+
+Jadi untuk sementara, semuanya kusimpan sendiri.
+
+Bukan berarti aku ingin terus seperti ini. Hanya saja, aku masih ingin mengenalnya lebih jauh sebelum memutuskan sesuatu.
+
+Siapa tahu nanti aku bisa lebih memahami perasaanku sendiri.`
+},
+{
+ title:"Entah Dia Sadar atau Tidak",
+ text:`Aku terkadang penasaran apakah dia pernah menyadari perubahan kecil dalam sikapku.
+
+Apakah dia tahu kalau aku senang saat dia ikut bermain?
+
+Apakah dia pernah berpikir kenapa aku sering menerima ajakannya?
+
+Mungkin tidak. Mungkin juga dia tidak pernah memikirkan hal-hal seperti itu.
+
+Dan sebenarnya tidak masalah.
+
+Aku tidak bisa berharap seseorang memahami sesuatu yang bahkan belum pernah aku ceritakan.
+
+Untuk saat ini, biarlah semuanya berjalan seperti biasa.
+
+Aku hanya ingin mengenalnya tanpa harus selalu mencari arti dari setiap hal kecil.`
+},
+{
+ title:"Belum Ada Jawaban",
+ text:`Sampai halaman ini ditulis, aku masih belum tahu bagaimana kelanjutannya.
+
+Kami masih bisa bermain, masih bisa bercanda, dan masih saling berbicara seperti biasa.
+
+Aku belum tahu apakah perasaan ini akan berkembang menjadi sesuatu yang lebih jauh atau hanya berhenti sebagai rasa suka.
+
+Mungkin suatu hari nanti aku akan punya keberanian untuk mengenalnya lebih dekat.
+
+Atau mungkin semuanya akan tetap seperti sekarang.
+
+Aku tidak ingin memaksakan akhir dari cerita yang bahkan masih berjalan.
+
+Untuk sekarang, aku hanya ingin menikmati prosesnya.
+
+Dan kalau suatu saat dia membaca buku ini, mungkin dia akan tahu bahwa semuanya berawal dari hal sederhana: sering mabar PUBG.
+
+— Dear Someone.`
+}
+];
+
+let current=-1;
+let busy=false;
+
+function render(){
+ const left=document.getElementById("leftContent");
+ const right=document.getElementById("rightContent");
+
+ if(current===-1){
+  left.innerHTML=`
+   <div class="ornament">✿</div>
+   <h2>Dear Someone.</h2>
+   <p>A story that started with a game.<br><br>A little collection of thoughts and moments.</p>
+   <div class="ornament">♡</div>`;
+  right.innerHTML=`
+   <div style="text-align:center;padding-top:65px">
+    <div class="chapter-label">A PRIVATE JOURNAL</div>
+    <h2 style="font-weight:normal;font-size:25px;margin:22px 0">For Someone<br>Who Doesn't Know.</h2>
+    <p style="font-size:13px;line-height:2;color:#9d866e;font-style:italic">Somewhere between a game<br>and everyday conversations,<br>a story quietly began.</p>
+    <p style="margin-top:35px;color:#ad9477">♡</p>
+   </div>`;
+  document.getElementById("leftNumber").textContent="";
+  document.getElementById("rightNumber").textContent="";
+  document.getElementById("counter").textContent="Cover";
+ }else{
+  const c=chapters[current];
+  left.innerHTML=`
+   <div class="left-inner">
+    <div class="chapter-label">DEAR SOMEONE</div>
+    <h2 style="font-size:20px;font-weight:normal">Chapter ${current+1}</h2>
+    <div class="ornament">✿</div>
+    <p>${current+1} dari ${chapters.length} cerita.</p>
+   </div>`;
+  const label=document.createElement("div");
+  label.className="chapter-label";
+  label.textContent="CHAPTER "+String(current+1).padStart(2,"0");
+
+  const title=document.createElement("h2");
+  title.className="chapter-title";
+  title.textContent=c.title;
+
+  const story=document.createElement("div");
+  story.className="story";
+  story.textContent=c.text;
+
+  right.replaceChildren(label,title,story);
+  document.getElementById("leftNumber").textContent=current*2;
+  document.getElementById("rightNumber").textContent=current*2+1;
+  document.getElementById("counter").textContent=
+   "Bab "+(current+1)+" / "+chapters.length;
+ }
+
+ document.getElementById("prev").disabled=current===-1;
+ document.getElementById("next").disabled=current===chapters.length-1;
+
+ document.querySelectorAll(".toc-button").forEach((b,i)=>{
+  b.classList.toggle("active",i===current);
+ });
+}
+
+function turn(direction){
+ if(busy)return;
+ let target=current+direction;
+ if(target< -1 || target>=chapters.length)return;
+
+ busy=true;
+ const el=document.getElementById("turner");
+ el.classList.remove("flip");
+ void el.offsetWidth;
+ el.classList.add("flip");
+
+ setTimeout(()=>{
+  current=target;
+  render();
+  el.classList.remove("flip");
+  busy=false;
+ },620);
+}
+
+function goTo(index){
+ if(busy)return;
+ current=index;
+ render();
+ document.querySelector(".book-wrap").scrollIntoView({
+  behavior:"smooth",block:"start"
+ });
+}
+
+const toc=document.getElementById("tocList");
+chapters.forEach((c,i)=>{
+ const b=document.createElement("button");
+ b.className="toc-button";
+ const num=document.createElement("span");
+ num.textContent=String(i+1).padStart(2,"0");
+ b.append(num,document.createTextNode(c.title));
+ b.onclick=()=>goTo(i);
+ toc.appendChild(b);
+});
+
+let playing=false;
+function music(){
+ const frame=document.getElementById("yt");
+ frame.contentWindow.postMessage(JSON.stringify({
+  event:"command",
+  func:playing?"pauseVideo":"playVideo",
+  args:[]
+ }),"*");
+ playing=!playing;
+ document.getElementById("musicBtn").textContent=playing?"Ⅱ":"▶";
+}
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowRight")turn(1);
+ if(e.key==="ArrowLeft")turn(-1);
+});
+
+render();
+</script>
+</body>
+</html>
